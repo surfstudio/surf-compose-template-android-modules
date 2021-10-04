@@ -1,0 +1,10 @@
+[versions]
+
+koinVersion = "3.1.2"
+logbackVersion = "1.2.6"
+
+[libraries]
+dependency-koin = { module = "org.codehaus.groovy:groovy", version.ref = "koinVersion" }
+
+[bundles]
+dependency = ["dependency-koin"]
