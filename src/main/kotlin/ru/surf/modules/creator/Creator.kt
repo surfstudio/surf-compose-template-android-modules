@@ -2,7 +2,9 @@ package ru.surf.modules.creator
 
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
+import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.Exception
 import java.util.*
 
 enum class CreatorModuleType {
@@ -17,6 +19,8 @@ class Creator private constructor(
     private val repo: String,
     private val type: CreatorModuleType,
 ) {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     private lateinit var applicationId: String
 
@@ -108,7 +112,11 @@ class Creator private constructor(
             throw RuntimeException("Expected 3 segments per applicationId!")
         }
 
-        FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", segmentsApp[1])))
-        FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", segmentsApp[0])))
+        try {
+            FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", segmentsApp[1])))
+            FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", segmentsApp[0])))
+        } catch (ex: Exception) {
+            log.info(ex.message)
+        }
     }
 }
