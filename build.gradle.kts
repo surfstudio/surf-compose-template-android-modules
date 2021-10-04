@@ -33,6 +33,9 @@ repositories {
 
 tasks {
     shadowJar {
+
+        archiveBaseName.set("modules")
+
         manifest {
             attributes(Pair("Main-Class", "ru.surf.modules.ApplicationKt"))
         }
