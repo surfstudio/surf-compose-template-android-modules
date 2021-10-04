@@ -19,12 +19,7 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import kotlinx.cli.required
-
-enum class ModuleType {
-    SIMPLE,
-    MIDDLE,
-    LARGER,
-}
+import ru.surf.modules.creator.CreatorModuleType
 
 object AppArgParser {
 
@@ -36,6 +31,12 @@ object AppArgParser {
         description = "Name module"
     ).required()
 
+    val path by argParser.option(
+        ArgType.String,
+        fullName = "path",
+        description = "Path to android project"
+    ).required()
+
     val isDebug by argParser.option(
         ArgType.Boolean,
         fullName = "debug",
@@ -43,10 +44,10 @@ object AppArgParser {
     ).default(false)
 
     val type by argParser.option(
-        ArgType.Choice<ModuleType>(),
+        ArgType.Choice<CreatorModuleType>(),
         fullName = "mode",
         description = "Start mode"
-    ).default(ModuleType.LARGER)
+    ).default(CreatorModuleType.SIMPLE)
 
     fun parse(args: Array<String>) {
         argParser.parse(args)

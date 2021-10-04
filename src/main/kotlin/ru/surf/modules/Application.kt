@@ -24,6 +24,7 @@ import ru.surf.modules.common.base.toGreen
 import ru.surf.modules.common.base.toYellow
 import ru.surf.modules.common.di.moduleServicesDI
 import ru.surf.modules.common.util.AppArgParser
+import ru.surf.modules.creator.Creator
 
 fun main(args: Array<String>) {
 
@@ -47,5 +48,9 @@ fun main(args: Array<String>) {
             .trimMargin("|")
     )
 
-    println(AppArgParser.name)
+    Creator.run(
+        path = AppArgParser.path,
+        name = AppArgParser.name,
+        type = AppArgParser.type,
+    )
 }

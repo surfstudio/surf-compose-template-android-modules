@@ -49,4 +49,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:${libs.versions.logbackVersion.get()}")
     // CLI
     implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.3")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:3.5.0.201409260305-r")
+    implementation("commons-io:commons-io:2.6")
 }
