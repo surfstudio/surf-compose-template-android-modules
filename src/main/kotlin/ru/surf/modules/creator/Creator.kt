@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.Exception
 import java.util.*
 
 enum class CreatorModuleType {
@@ -22,7 +21,16 @@ class Creator private constructor(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private lateinit var applicationId: String
+    private val applicationId: String by lazy {
+        listOf(
+            File("$path/app/build.gradle.kts"),
+            File("$path/app/build.gradle"),
+        ).firstOrNull {
+            it.exists() && it.isFile
+        }?.let {
+            return@lazy loadApplicationId(it) ?: throw RuntimeException("applicationId null!")
+        } ?: throw RuntimeException("Not found build gradle app!")
+    }
 
     companion object {
 
@@ -36,27 +44,14 @@ class Creator private constructor(
                 name = name,
                 type = type
             )
+
+            // module dir
+            val moduleDir = File("$path/modules/$name")
+
             // Clone module
-            creator.cloneModule()
+            creator.cloneModule(moduleDir)
             // Move package
-            creator.movePackage()
-        }
-    }
-
-    init {
-        // load info about app
-        listOf(
-            File("$path/app/build.gradle.kts"),
-            File("$path/app/build.gradle"),
-        ).firstOrNull {
-            it.exists() && it.isFile
-        }?.let {
-            loadApplicationId(it)?.let { id -> applicationId = id }
-        } ?: throw RuntimeException("Not found build gradle app!")
-
-        // is not found applicationId
-        if (!::applicationId.isInitialized) {
-            throw RuntimeException("applicationId null!")
+            creator.movePackage(moduleDir)
         }
     }
 
@@ -69,11 +64,10 @@ class Creator private constructor(
         return null
     }
 
-    private fun cloneModule() {
+    private fun cloneModule(moduleDir: File) {
         val temp = FileUtils.getTempDirectory().resolve(UUID.randomUUID().toString())
 
         val modulesDir = File("$path/modules")
-        val newModuleDir = File("$path/modules/$name")
 
         when {
             // create folder modules
@@ -81,7 +75,7 @@ class Creator private constructor(
             // check if exist
             modulesDir.exists() && modulesDir.isFile -> throw RuntimeException("$modulesDir must to be a folder!")
             // check if exist module by name
-            newModuleDir.exists() -> throw RuntimeException("$newModuleDir already exist!")
+            moduleDir.exists() -> throw RuntimeException("$moduleDir already exist!")
         }
 
         // clone repo
@@ -91,18 +85,17 @@ class Creator private constructor(
             .call()
 
         // move module
-        FileUtils.moveDirectory(File("${temp.path}/modules/${type.name.lowercase()}"), newModuleDir)
+        FileUtils.moveDirectory(File("${temp.path}/modules/${type.name.lowercase()}"), moduleDir)
 
         // remove temp files
         FileUtils.deleteDirectory(temp)
     }
 
-    private fun movePackage() {
-        val newModuleDir = File("$path/modules/$name")
+    private fun movePackage(moduleDir: File) {
 
-        val segmentThird = File("${newModuleDir.path}/src/main/kotlin/ru/surf/module_name")
-        val segmentSecond = File("${newModuleDir.path}/src/main/kotlin/ru/surf")
-        val segmentOne = File("${newModuleDir.path}/src/main/kotlin/ru")
+        val segmentThird = File("${moduleDir.path}/src/main/kotlin/ru/surf/module_name")
+        val segmentSecond = File("${moduleDir.path}/src/main/kotlin/ru/surf")
+        val segmentOne = File("${moduleDir.path}/src/main/kotlin/ru")
 
         FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace("module_name", name)))
 
@@ -114,6 +107,11 @@ class Creator private constructor(
 
         try {
             FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", segmentsApp[1])))
+        } catch (ex: Exception) {
+            log.info(ex.message)
+        }
+
+        try {
             FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", segmentsApp[0])))
         } catch (ex: Exception) {
             log.info(ex.message)
