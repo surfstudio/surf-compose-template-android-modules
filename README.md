@@ -30,8 +30,9 @@ Value for option --name should be always provided in command line.
 Usage: Autoway options_list
 Options: 
     --name -> Name module (always required) { String }
+    --path -> Path to android project (always required) { String }
     --debug [false] -> Debug mode 
-    --mode [LARGER] -> Start mode { Value should be one of [simple, middle, larger] }
+    --type [SIMPLE] -> Type module { Value should be one of [simple, middle, larger] }
     --help, -h -> Usage info 
 ```
 
