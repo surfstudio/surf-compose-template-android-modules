@@ -3,6 +3,10 @@ Automation create modules
 
 Generating modules for the [Compose Template Android](https://github.com/surfstudio/compose-template-android) template
 
+### Preview
+
+https://user-images.githubusercontent.com/9665914/136036640-18e5eefb-923d-476d-8cb3-02da2b38c51b.mov
+
 ### Module **simple**
 
 Simplest empty module
