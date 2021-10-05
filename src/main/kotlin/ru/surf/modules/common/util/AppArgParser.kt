@@ -23,7 +23,7 @@ import ru.surf.modules.creator.CreatorModuleType
 
 object AppArgParser {
 
-    private val argParser = ArgParser("Autoway")
+    private val argParser = ArgParser("Automation create modules")
 
     val name by argParser.option(
         ArgType.String,

@@ -26,8 +26,7 @@ Works with the [template](https://github.com/surfstudio/compose-template-android
 ### Terminal
 
 ```
-Value for option --name should be always provided in command line.
-Usage: Autoway options_list
+Usage: Automation create modules options_list
 Options: 
     --name -> Name module (always required) { String }
     --path -> Path to android project (always required) { String }
