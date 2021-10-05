@@ -5,7 +5,6 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
-    kotlin("plugin.serialization")
 }
 
 android {
@@ -54,15 +53,6 @@ android {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
-
-    packagingOptions {
-        resources {
-            excludes.add("**/attach_hotspot_windows.dll")
-            excludes.add("META-INF/licenses/**")
-            excludes.add("META-INF/AL2.0")
-            excludes.add("META-INF/LGPL2.1")
-        }
-    }
 }
 
 // libraries
@@ -70,26 +60,16 @@ dependencies {
 
     // Common module for all modules
     implementation(project(":modules:core"))
-    testImplementation(project(":modules:core"))
 
     // Connecting internal libraries
     dependenciesInternal()
 
-    implementation(libs.bundles.room)
-    implementation(libs.bundles.paging)
     implementation(libs.bundles.other)
     implementation(libs.bundles.lottie)
-    implementation(libs.bundles.retrofit2)
     implementation(libs.bundles.firebase)
-    implementation(libs.bundles.coil)
     implementation(libs.bundles.accompanist)
     implementation(libs.bundles.compose)
     implementation(libs.bundles.hilt)
 
     kapt(libs.bundles.hiltKapt)
-    kapt(libs.bundles.roomKapt)
-
-    testImplementation(libs.bundles.test)
-    debugImplementation(libs.bundles.testDebug)
-    androidTestImplementation(libs.bundles.testAndroid)
 }
