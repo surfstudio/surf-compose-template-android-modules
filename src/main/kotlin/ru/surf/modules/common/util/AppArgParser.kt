@@ -45,8 +45,8 @@ object AppArgParser {
 
     val type by argParser.option(
         ArgType.Choice<CreatorModuleType>(),
-        fullName = "mode",
-        description = "Start mode"
+        fullName = "type",
+        description = "Type module"
     ).default(CreatorModuleType.SIMPLE)
 
     fun parse(args: Array<String>) {

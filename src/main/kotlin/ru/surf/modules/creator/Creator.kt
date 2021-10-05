@@ -3,6 +3,8 @@ package ru.surf.modules.creator
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.slf4j.LoggerFactory
+import ru.surf.modules.common.base.toBlue
+import ru.surf.modules.common.base.toGreen
 import java.io.File
 import java.util.*
 
@@ -63,18 +65,26 @@ class Creator private constructor(
             // module dir
             val moduleDir = File("$path/modules/${creator.nameLowercase}")
 
-            // Clone module
+            println(""" ${"•".toBlue()} Start clone module""")
             creator.cloneModule(moduleDir)
-            // Move package
+
+            println(""" ${"•".toBlue()} Start move package""")
             creator.movePackage(moduleDir)
-            // Connect to project
+
+            println(""" ${"•".toBlue()} Connect to project""")
             creator.connectToProject()
-            // Connect to app
+
+            println(""" ${"•".toBlue()} Connect to app""")
             creator.addActionsToApp()
-            // Find and change name file to module name
+
+            println(""" ${"•".toBlue()} Find and change name file to module name""")
             creator.renameFilesAndDirectory(moduleDir)
-            // Find and change text in files to module name
+
+            println(""" ${"•".toBlue()} Find and change text in files to module name""")
             creator.changeNamesClassesAndFunctions(moduleDir)
+
+            println()
+            println(""" ${"Done !".toGreen()}""")
         }
     }
 
@@ -88,6 +98,7 @@ class Creator private constructor(
     }
 
     private fun cloneModule(moduleDir: File) {
+
         val temp = FileUtils.getTempDirectory().resolve(UUID.randomUUID().toString())
 
         val modulesDir = File("$path/modules")
