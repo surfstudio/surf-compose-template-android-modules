@@ -1,36 +1,20 @@
-package ru.surf._module_name_.ui.screens.viewUser
+package ru.surf._module_name_.ui.screens.viewScreen
 
 import android.content.res.Configuration
-import androidx.activity.OnBackPressedDispatcher
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.insets.systemBarsPadding
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.keygenqt.accompanist.MainScaffoldSearch
-import com.keygenqt.modifier.paddingLarge
-import com.keygenqt.modifier.sizeLarge
-import ru.surf.core.compose.AppSwipeRefreshIndicator
-import ru.surf.core.compose.LoaderPage
-import ru.surf.core.compose.PageNotFound
+import ru.surf._module_name_.ui.actions._Module_name_Actions
 import ru.surf.core.compose.TopBarContentTitle
 import ru.surf.core.theme.MainAppTheme
-import ru.surf.users.data.mock.userModelMock
-import ru.surf.users.data.models.UserModel
-import ru.surf.users.ui.actions.ViewUserActions
 
 /**
  * Body page [_Module_name_Screen]
@@ -39,7 +23,7 @@ import ru.surf.users.ui.actions.ViewUserActions
  * @param onActions actions page
  */
 @Composable
-fun View_Module_name_Body(
+fun _Module_name_Body(
     loading: Boolean = false,
     onActions: (_Module_name_Actions) -> Unit = {},
 ) {
@@ -49,24 +33,15 @@ fun View_Module_name_Body(
             TopBarContentTitle("_Module_name_")
         },
     ) {
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(loading),
-            onRefresh = {
-                onActions(ViewUserActions.RefreshView(id))
-            },
-            indicator = { st, tr ->
-                AppSwipeRefreshIndicator(st, tr)
-            },
+        Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Column(
+            Text(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-
-            }
+                    .align(Alignment.Center),
+                text = "_Module_name_"
+            )
         }
     }
 }

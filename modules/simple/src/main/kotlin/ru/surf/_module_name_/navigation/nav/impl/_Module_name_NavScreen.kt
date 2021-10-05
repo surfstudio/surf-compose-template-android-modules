@@ -1,9 +1,7 @@
 package ru.surf._module_name_.navigation.nav.impl
 
 import com.keygenqt.routing.NavScreen
-import com.keygenqt.routing.NavScreenWithArgument
-import ru.surf.users.ui.screens.listUsers.ListUsersScreen
-import ru.surf.users.ui.screens.viewUser.ViewUserScreen
+import ru.surf._module_name_.ui.screens.viewScreen._Module_name_Screen
 
 /**
  * Routing for [_Module_name_Screen]

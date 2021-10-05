@@ -1,9 +1,8 @@
 package ru.surf._module_name_.navigation.actions.impl
 
 import androidx.navigation.NavHostController
-import ru.surf.users.navigation.nav.UsersNav
-import ru.surf.users.ui.screens.listUsers.ListUsersScreen
-import ru.surf.users.ui.screens.viewUser.ViewUserScreen
+import ru.surf._module_name_.navigation.nav._Module_name_Nav
+import ru.surf._module_name_.ui.screens.viewScreen._Module_name_Screen
 
 /**
  * Custom actions for [_Module_name_Screen]

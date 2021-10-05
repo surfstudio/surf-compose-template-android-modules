@@ -1,6 +1,7 @@
 package ru.surf._module_name_.data.preferences
 
 import android.content.SharedPreferences
+import ru.surf.core.interfaces.IAppPreferences
 
 /**
  * Base service shared preference module

@@ -1,11 +1,10 @@
-package ru.surf._module_name_.ui.screens.viewUser
+package ru.surf._module_name_.ui.screens.viewScreen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import ru.surf.core.base.LocalBackPressedDispatcher
-import ru.surf.users.ui.actions.ViewUserActions
-import ru.surf.users.ui.viewModels.UsersViewModel
+import ru.surf._module_name_.ui.actions._Module_name_Actions
+import ru.surf._module_name_.ui.viewModels._Module_name_ViewModel
 
 /**
  * Base page fun for initialization
@@ -14,15 +13,14 @@ import ru.surf.users.ui.viewModels.UsersViewModel
  * @param onActions actions
  */
 @Composable
-fun ViewMainScreen(
-    userId: String,
+fun _Module_name_Screen(
     viewModel: _Module_name_ViewModel,
-    onActions: (View_Module_name_Actions) -> Unit = {},
+    onActions: (_Module_name_Actions) -> Unit = {},
 ) {
 
     val loading: Boolean by viewModel.loading.collectAsState()
 
-    View_Module_name_Body(
+    _Module_name_Body(
         loading = loading,
         onActions = onActions,
     )
