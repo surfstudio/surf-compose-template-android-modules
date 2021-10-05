@@ -21,15 +21,20 @@ class Creator private constructor(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private val key = "_Module_name_"
+
+    private val keyLowercase by lazy {
+        key.lowercase()
+    }
+
     private val applicationId: String by lazy {
         listOf(
             File("$path/app/build.gradle.kts"),
-            File("$path/app/build.gradle"),
         ).firstOrNull {
             it.exists() && it.isFile
         }?.let {
             return@lazy loadApplicationId(it) ?: throw RuntimeException("applicationId null!")
-        } ?: throw RuntimeException("Not found build gradle app!")
+        } ?: throw RuntimeException("Not found build.gradle.kts app!")
     }
 
     companion object {
@@ -52,6 +57,8 @@ class Creator private constructor(
             creator.cloneModule(moduleDir)
             // Move package
             creator.movePackage(moduleDir)
+            // Connect to project
+            creator.connectToProject()
         }
     }
 
@@ -93,11 +100,11 @@ class Creator private constructor(
 
     private fun movePackage(moduleDir: File) {
 
-        val segmentThird = File("${moduleDir.path}/src/main/kotlin/ru/surf/module_name")
+        val segmentThird = File("${moduleDir.path}/src/main/kotlin/ru/surf/$keyLowercase")
         val segmentSecond = File("${moduleDir.path}/src/main/kotlin/ru/surf")
         val segmentOne = File("${moduleDir.path}/src/main/kotlin/ru")
 
-        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace("module_name", name)))
+        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, name)))
 
         val segmentsApp = applicationId.split(".")
 
@@ -116,5 +123,44 @@ class Creator private constructor(
         } catch (ex: Exception) {
             log.info(ex.message)
         }
+    }
+
+    private fun connectToProject() {
+        // add to settings.gradle.kts
+        File(path).resolve("settings.gradle.kts").let { file ->
+            var fileContent = ""
+            file.forEachLine {
+                if (it.contains("include(\":modules:core\")")) {
+                    fileContent += "include(\":modules:$name\")\n"
+                }
+                fileContent += "$it\n"
+            }
+            file.printWriter().use { out ->
+                out.println(fileContent)
+            }
+        }
+        // add to build.gradle.kts
+        File(path).resolve("app/build.gradle.kts").let { file ->
+            var fileContent = ""
+            file.forEachLine {
+                if (it.contains("implementation(project(\":modules:core\"))")) {
+                    fileContent += "    implementation(project(\":modules:$name\"))\n"
+                }
+                fileContent += "$it\n"
+            }
+            file.printWriter().use { out ->
+                out.println(fileContent)
+            }
+        }
+    }
+
+    private fun changeForModuleName() {
+        // AndroidManifest.xml
+        // package ru.surf.users
+        // UsersPreferences
+        // provideUsersPreferences
+        // UsersNavActions
+        // UsersViewModel
+
     }
 }

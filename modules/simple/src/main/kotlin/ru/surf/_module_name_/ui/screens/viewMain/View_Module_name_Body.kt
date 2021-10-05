@@ -1,19 +1,4 @@
-/**
- * Copyright 2021 Surf
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package ru.surf.users.ui.screens.viewUser
+package ru.surf._module_name_.ui.screens.viewUser
 
 import android.content.res.Configuration
 import androidx.activity.OnBackPressedDispatcher
@@ -48,34 +33,20 @@ import ru.surf.users.data.models.UserModel
 import ru.surf.users.ui.actions.ViewUserActions
 
 /**
- * Body page [ViewUserScreen]
+ * Body page [_Module_name_Screen]
  *
- * @param id user identifier
- * @param model data db room [UserModel]
  * @param loading state call query to api
- * @param error404 state if model not found
  * @param onActions actions page
- * @param backDispatcher dispatcher press back
- *
- * @author Vitaliy Zarubin
  */
 @Composable
-fun ViewUserBody(
-    id: String,
-    model: UserModel?,
+fun View_Module_name_Body(
     loading: Boolean = false,
-    error404: Boolean = false,
-    onActions: (ViewUserActions) -> Unit = {},
-    backDispatcher: OnBackPressedDispatcher? = null
+    onActions: (_Module_name_Actions) -> Unit = {},
 ) {
     MainScaffoldSearch(
         modifier = Modifier.systemBarsPadding(),
         contentTitle = {
-            TopBarContentTitle(model?.name ?: "")
-        },
-        navigationIcon = Icons.Default.ArrowBack,
-        navigationIconOnClick = {
-            backDispatcher?.onBackPressed()
+            TopBarContentTitle("_Module_name_")
         },
     ) {
         SwipeRefresh(
@@ -94,32 +65,7 @@ fun ViewUserBody(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (model is UserModel && !loading) {
-                    Column(
-                        modifier = Modifier
-                            .paddingLarge()
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            style = MaterialTheme.typography.h6,
-                            text = "Info:"
-                        )
 
-                        Spacer(modifier = Modifier.sizeLarge())
-
-                        Text(
-                            style = MaterialTheme.typography.h5,
-                            text = "User name: ${model.name}"
-                        )
-                    }
-                }
-            }
-            if (loading) {
-                LoaderPage()
-            }
-            if (error404) {
-                PageNotFound()
             }
         }
     }
@@ -131,10 +77,7 @@ fun ViewUserBody(
 private fun Preview() {
     MainAppTheme {
         Scaffold {
-            ViewUserBody(
-                id = userModelMock().id,
-                model = userModelMock()
-            )
+            _Module_name_Body()
         }
     }
 }
