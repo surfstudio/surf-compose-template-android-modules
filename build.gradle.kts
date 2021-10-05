@@ -12,7 +12,7 @@ plugins {
 spotless {
     kotlin {
         target("**/*.kt")
-        targetExclude("${project.projectDir}/modules")
+        targetExclude("modules/**")
         licenseHeaderFile("${project.projectDir}/copyright.txt")
     }
     kotlinGradle {
