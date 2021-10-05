@@ -5,14 +5,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.insets.systemBarsPadding
 import com.keygenqt.accompanist.MainScaffoldSearch
 import ru.surf._module_name_.ui.actions._Module_name_Actions
+import ru.surf.core.R
 import ru.surf.core.compose.TopBarContentTitle
 import ru.surf.core.theme.MainAppTheme
 
@@ -29,6 +33,8 @@ fun _Module_name_Body(
 ) {
     MainScaffoldSearch(
         modifier = Modifier.systemBarsPadding(),
+        navigationIcon = Icons.Default.Menu,
+        navigationIconOnClick = { onActions(_Module_name_Actions.OpenMenu) },
         contentTitle = {
             TopBarContentTitle("_Module_name_")
         },

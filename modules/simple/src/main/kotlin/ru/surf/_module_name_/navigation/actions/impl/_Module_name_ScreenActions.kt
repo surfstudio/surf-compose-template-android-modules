@@ -11,7 +11,7 @@ interface _Module_name_ScreenActions {
 
     val controller: NavHostController
 
-    fun toUsers() {
+    fun to_Module_name_() {
         controller.navigate(_Module_name_Nav.MainNav._Module_name_NavScreen.route)
     }
 }
