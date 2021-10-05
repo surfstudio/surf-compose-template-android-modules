@@ -9,11 +9,11 @@ Simplest empty module
 
 ### Module **middle**
 
-Module with api service
+Module with api service (coming soon)
 
 ### Module **larger**
 
-Module with api service and data service
+Module with api service and data service (coming soon)
 
 ### Usage
 
