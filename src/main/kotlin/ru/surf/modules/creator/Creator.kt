@@ -27,14 +27,24 @@ class Creator private constructor(
         key.lowercase()
     }
 
-    private val applicationId: String by lazy {
-        listOf(
+    private val nameLowercase by lazy {
+        name.lowercase()
+    }
+
+    private val applicationId: List<String> by lazy {
+        val list = listOf(
             File("$path/app/build.gradle.kts"),
         ).firstOrNull {
             it.exists() && it.isFile
         }?.let {
-            return@lazy loadApplicationId(it) ?: throw RuntimeException("applicationId null!")
+            return@let loadApplicationId(it) ?: throw RuntimeException("applicationId null!")
         } ?: throw RuntimeException("Not found build.gradle.kts app!")
+
+        val segmentsApp = list.split(".")
+        if (segmentsApp.size < 3) {
+            throw RuntimeException("Expected 3 segments per applicationId!")
+        }
+        segmentsApp
     }
 
     companion object {
@@ -46,12 +56,12 @@ class Creator private constructor(
             val creator = Creator(
                 repo = REPO,
                 path = path,
-                name = name,
+                name = name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) },
                 type = type
             )
 
             // module dir
-            val moduleDir = File("$path/modules/$name")
+            val moduleDir = File("$path/modules/${creator.nameLowercase}")
 
             // Clone module
             creator.cloneModule(moduleDir)
@@ -59,6 +69,12 @@ class Creator private constructor(
             creator.movePackage(moduleDir)
             // Connect to project
             creator.connectToProject()
+            // Connect to app
+            creator.addActionsToApp()
+            // Find and change name file to module name
+            creator.renameFilesAndDirectory(moduleDir)
+            // Find and change text in files to module name
+            creator.changeNamesClassesAndFunctions(moduleDir)
         }
     }
 
@@ -104,22 +120,16 @@ class Creator private constructor(
         val segmentSecond = File("${moduleDir.path}/src/main/kotlin/ru/surf")
         val segmentOne = File("${moduleDir.path}/src/main/kotlin/ru")
 
-        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, name)))
-
-        val segmentsApp = applicationId.split(".")
-
-        if (segmentsApp.size < 3) {
-            throw RuntimeException("Expected 3 segments per applicationId!")
-        }
+        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, nameLowercase)))
 
         try {
-            FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", segmentsApp[1])))
+            FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", applicationId[1])))
         } catch (ex: Exception) {
             log.info(ex.message)
         }
 
         try {
-            FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", segmentsApp[0])))
+            FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", applicationId[0])))
         } catch (ex: Exception) {
             log.info(ex.message)
         }
@@ -131,7 +141,7 @@ class Creator private constructor(
             var fileContent = ""
             file.forEachLine {
                 if (it.contains("include(\":modules:core\")")) {
-                    fileContent += "include(\":modules:$name\")\n"
+                    fileContent += "include(\":modules:$nameLowercase\")\n"
                 }
                 fileContent += "$it\n"
             }
@@ -144,7 +154,7 @@ class Creator private constructor(
             var fileContent = ""
             file.forEachLine {
                 if (it.contains("implementation(project(\":modules:core\"))")) {
-                    fileContent += "    implementation(project(\":modules:$name\"))\n"
+                    fileContent += "    implementation(project(\":modules:$nameLowercase\"))\n"
                 }
                 fileContent += "$it\n"
             }
@@ -154,13 +164,70 @@ class Creator private constructor(
         }
     }
 
-    private fun changeForModuleName() {
-        // AndroidManifest.xml
-        // package ru.surf.users
-        // UsersPreferences
-        // provideUsersPreferences
-        // UsersNavActions
-        // UsersViewModel
+    private fun addActionsToApp() {
+        File(path).resolve("app/src/main/kotlin/ru/surf/template/navigation/NavActions.kt").let { file ->
+            var fileContent = ""
+            file.forEachLine {
+                fileContent +=
+                    if (it.contains("import androidx.navigation.NavHostController")) {
+                        "import androidx.navigation.NavHostController\n" +
+                                "import ${
+                                    applicationId.take(2).joinToString(".")
+                                }.${nameLowercase}.navigation.actions.${name}NavActions\n"
+                    } else if (it.contains(") : ")) {
+                        val clazz = it.substringAfter(":").trim().replace(",", "")
+                        ") : ${name}NavActions,\n    $clazz,\n"
+                    } else {
+                        "$it\n"
+                    }
+            }
+            file.printWriter().use { out ->
+                out.println(fileContent)
+            }
+        }
+    }
 
+    private fun renameFilesAndDirectory(moduleDir: File) {
+        moduleDir.walkTopDown().forEach {
+            if (it.isFile) {
+                if (it.name.contains(key)) {
+                    FileUtils.moveFile(it, File(it.path.replace(key, name)))
+                } else if (it.name.contains(keyLowercase)) {
+                    FileUtils.moveFile(it, File(it.path.replace(keyLowercase, nameLowercase)))
+                }
+            } else if (it.isDirectory) {
+                if (it.name.contains(key)) {
+                    FileUtils.moveDirectory(it, File(it.path.replace(key, name)))
+                } else if (it.name.contains(keyLowercase)) {
+                    FileUtils.moveDirectory(it, File(it.path.replace(keyLowercase, nameLowercase)))
+                }
+            }
+        }
+    }
+
+    private fun changeNamesClassesAndFunctions(moduleDir: File) {
+        moduleDir.walkTopDown().forEach { file ->
+            if (file.isFile) {
+                var isFind = false
+                var fileContent = ""
+                file.forEachLine { line ->
+                    var lineRes = line
+                    if (lineRes.contains(key)) {
+                        isFind = true
+                        lineRes = lineRes.replace(key, name)
+                    }
+                    if (lineRes.contains(keyLowercase)) {
+                        isFind = true
+                        lineRes = lineRes.replace(keyLowercase, nameLowercase)
+                    }
+                    fileContent += "$lineRes\n"
+                }
+                if (isFind) {
+                    file.printWriter().use { out ->
+                        out.println(fileContent)
+                    }
+                }
+            }
+        }
     }
 }
