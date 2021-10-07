@@ -48,6 +48,20 @@ class Creator private constructor(
         name.lowercase()
     }
 
+    private val packet: String by lazy {
+        var packet: String? = null
+        File(path).resolve("app/src/main/AndroidManifest.xml").let { file ->
+            file.forEachLine {
+                packet?.let { return@forEachLine } ?: run {
+                    if (it.contains("package=\"")) {
+                        packet = it.substringAfter("\"").substringBefore("\"")
+                    }
+                }
+            }
+        }
+        return@lazy packet ?: throw RuntimeException("Not found package in AndroidManifest!")
+    }
+
     private val applicationId: List<String> by lazy {
         val list = listOf(
             File("$path/app/build.gradle.kts"),
@@ -58,7 +72,7 @@ class Creator private constructor(
         } ?: throw RuntimeException("Not found build.gradle.kts app!")
 
         val segmentsApp = list.split(".")
-        if (segmentsApp.size < 3) {
+        if (segmentsApp.size < 2) {
             throw RuntimeException("Expected 3 segments per applicationId!")
         }
         segmentsApp
@@ -191,7 +205,7 @@ class Creator private constructor(
     }
 
     private fun addActionsToApp() {
-        File(path).resolve("app/src/main/kotlin/ru/surf/template/navigation/NavActions.kt").let { file ->
+        File(path).resolve("app/src/main/kotlin/${packet.replace(".", "/")}/navigation/NavActions.kt").let { file ->
             var fileContent = ""
             file.forEachLine {
                 fileContent +=
