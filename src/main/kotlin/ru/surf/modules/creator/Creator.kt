@@ -48,13 +48,13 @@ class Creator private constructor(
         name.lowercase()
     }
 
-    private val packet: String by lazy {
-        var packet: String? = null
+    private val packet: List<String> by lazy {
+        var packet: List<String>? = null
         File(path).resolve("app/src/main/AndroidManifest.xml").let { file ->
             file.forEachLine {
                 packet?.let { return@forEachLine } ?: run {
                     if (it.contains("package=\"")) {
-                        packet = it.substringAfter("\"").substringBefore("\"")
+                        packet = it.substringAfter("\"").substringBefore("\"").split(".")
                     }
                 }
             }
@@ -163,13 +163,13 @@ class Creator private constructor(
         FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, nameLowercase)))
 
         try {
-            FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", applicationId[1])))
+            FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", packet[1])))
         } catch (ex: Exception) {
             log.info(ex.message)
         }
 
         try {
-            FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", applicationId[0])))
+            FileUtils.moveDirectory(segmentOne, File(segmentOne.path.replace("ru", packet[0])))
         } catch (ex: Exception) {
             log.info(ex.message)
         }
@@ -205,14 +205,14 @@ class Creator private constructor(
     }
 
     private fun addActionsToApp() {
-        File(path).resolve("app/src/main/kotlin/${packet.replace(".", "/")}/navigation/NavActions.kt").let { file ->
+        File(path).resolve("app/src/main/kotlin/${packet.joinToString("/")}/navigation/NavActions.kt").let { file ->
             var fileContent = ""
             file.forEachLine {
                 fileContent +=
                     if (it.contains("import androidx.navigation.NavHostController")) {
                         "import androidx.navigation.NavHostController\n" +
                                 "import ${
-                                    applicationId.take(2).joinToString(".")
+                                    packet.take(2).joinToString(".")
                                 }.${nameLowercase}.navigation.actions.${name}NavActions\n"
                     } else if (it.contains(") : ")) {
                         val clazz = it.substringAfter(":").trim().replace(",", "")
@@ -259,6 +259,18 @@ class Creator private constructor(
                     if (lineRes.contains(keyLowercase)) {
                         isFind = true
                         lineRes = lineRes.replace(keyLowercase, nameLowercase)
+                    }
+                    // kt
+                    if (lineRes.contains("package ru.surf.$nameLowercase")) {
+                        isFind = true
+                        lineRes = lineRes.replace("package ru.surf.$nameLowercase",
+                            "package ${packet.take(2).joinToString(".")}.$nameLowercase")
+                    }
+                    // manifest
+                    if (lineRes.contains("package=\"ru.surf.$nameLowercase")) {
+                        isFind = true
+                        lineRes = lineRes.replace("package=\"ru.surf.$nameLowercase",
+                            "package=\"${packet.take(2).joinToString(".")}.$nameLowercase")
                     }
                     fileContent += "$lineRes\n"
                 }
