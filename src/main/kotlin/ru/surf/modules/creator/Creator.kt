@@ -20,6 +20,7 @@ import org.eclipse.jgit.api.Git
 import org.slf4j.LoggerFactory
 import ru.surf.modules.common.base.toBlue
 import ru.surf.modules.common.base.toGreen
+import ru.surf.modules.common.extensions.getPackageFromAndroidManifest
 import java.io.File
 import java.util.*
 
@@ -48,18 +49,12 @@ class Creator private constructor(
         name.lowercase()
     }
 
+    private val packetCore: List<String> by lazy {
+        File(path).resolve("modules/core/src/main/AndroidManifest.xml").getPackageFromAndroidManifest()
+    }
+
     private val packet: List<String> by lazy {
-        var packet: List<String>? = null
-        File(path).resolve("app/src/main/AndroidManifest.xml").let { file ->
-            file.forEachLine {
-                packet?.let { return@forEachLine } ?: run {
-                    if (it.contains("package=\"")) {
-                        packet = it.substringAfter("\"").substringBefore("\"").split(".")
-                    }
-                }
-            }
-        }
-        return@lazy packet ?: throw RuntimeException("Not found package in AndroidManifest!")
+        File(path).resolve("app/src/main/AndroidManifest.xml").getPackageFromAndroidManifest()
     }
 
     private val applicationId: List<String> by lazy {
@@ -260,17 +255,18 @@ class Creator private constructor(
                         isFind = true
                         lineRes = lineRes.replace(keyLowercase, nameLowercase)
                     }
-                    // kt
-                    if (lineRes.contains("package ru.surf.$nameLowercase")) {
+                    // module package
+                    if (lineRes.contains("ru.surf.$nameLowercase")) {
                         isFind = true
-                        lineRes = lineRes.replace("package ru.surf.$nameLowercase",
-                            "package ${packet.take(2).joinToString(".")}.$nameLowercase")
+                        lineRes = lineRes.replace(
+                            "ru.surf.$nameLowercase",
+                            "${packet.take(2).joinToString(".")}.$nameLowercase"
+                        )
                     }
-                    // manifest
-                    if (lineRes.contains("package=\"ru.surf.$nameLowercase")) {
+                    // core package
+                    if (lineRes.contains("ru.surf.core")) {
                         isFind = true
-                        lineRes = lineRes.replace("package=\"ru.surf.$nameLowercase",
-                            "package=\"${packet.take(2).joinToString(".")}.$nameLowercase")
+                        lineRes = lineRes.replace("ru.surf.core", packetCore.joinToString("."))
                     }
                     fileContent += "$lineRes\n"
                 }
