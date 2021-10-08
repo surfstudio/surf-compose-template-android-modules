@@ -23,6 +23,8 @@ import ru.surf.modules.common.base.toGreen
 import ru.surf.modules.common.extensions.getPackageFromAndroidManifest
 import java.io.File
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 enum class CreatorModuleType {
     SIMPLE,
@@ -58,23 +60,32 @@ class Creator private constructor(
     }
 
     private val packet: List<String> by lazy {
-        File(path).resolve("app/src/main/AndroidManifest.xml").getPackageFromAndroidManifest()
+        File(path).resolve("$appName/src/main/AndroidManifest.xml").getPackageFromAndroidManifest()
     }
 
-    private val applicationId: List<String> by lazy {
-        val list = listOf(
-            File("$path/app/build.gradle.kts"),
-        ).firstOrNull {
-            it.exists() && it.isFile
-        }?.let {
-            return@let loadApplicationId(it) ?: throw RuntimeException("applicationId null!")
-        } ?: throw RuntimeException("Not found build.gradle.kts app!")
-
-        val segmentsApp = list.split(".")
-        if (segmentsApp.size < 2) {
-            throw RuntimeException("Expected 3 segments per applicationId!")
+    private val appModules: String by lazy {
+        val module = appName.replace("app", "modules")
+        if (File("${path}/${module}").exists()) {
+            module
+        } else {
+            "modules"
         }
-        segmentsApp
+    }
+
+    private val appName: String by lazy {
+        val process = ProcessBuilder("\\s".toRegex().split("./gradlew projects"))
+            .directory(File(path))
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .redirectError(ProcessBuilder.Redirect.PIPE)
+            .start()
+            .also { it.waitFor(10, TimeUnit.SECONDS) }
+
+        if (process.exitValue() != 0) {
+            throw Exception(process.errorStream.bufferedReader().readText())
+        }
+        process.inputStream.bufferedReader().readText().split("\n")
+            .first { it.contains("+--- Project") && !it.contains("modules") }
+            .substringAfter(":").substringBefore("'")
     }
 
     companion object {
@@ -91,7 +102,7 @@ class Creator private constructor(
             )
 
             // module dir
-            val moduleDir = File("$path/modules/${creator.nameLowercase}")
+            val moduleDir = File("$path/${creator.appModules}/${creator.nameLowercase}")
 
             println(""" ${"•".toBlue()} Start clone module""")
             creator.cloneModule(moduleDir)
@@ -116,20 +127,11 @@ class Creator private constructor(
         }
     }
 
-    private fun loadApplicationId(gradleFile: File): String? {
-        for (line in gradleFile.readLines()) {
-            if (line.contains("applicationId")) {
-                return line.substringAfter("\"").substringBefore("\"")
-            }
-        }
-        return null
-    }
-
     private fun cloneModule(moduleDir: File) {
 
         val temp = FileUtils.getTempDirectory().resolve(UUID.randomUUID().toString())
 
-        val modulesDir = File("$path/modules")
+        val modulesDir = File("$path/$appModules")
 
         when {
             // create folder modules
@@ -180,48 +182,52 @@ class Creator private constructor(
             var fileContent = ""
             file.forEachLine {
                 if (it.contains("include(\":modules:core\")")) {
-                    fileContent += "include(\":modules:$nameLowercase\")\n"
+                    fileContent += "include(\":$appModules:$nameLowercase\")\n"
                 }
                 fileContent += "$it\n"
             }
             file.printWriter().use { out ->
-                out.println(fileContent)
+                out.println(fileContent.trim())
             }
         }
         // add to build.gradle.kts
-        File(path).resolve("app/build.gradle.kts").let { file ->
-            var fileContent = ""
-            file.forEachLine {
-                if (it.contains("implementation(project(\":modules:core\"))")) {
-                    fileContent += "    implementation(project(\":modules:$nameLowercase\"))\n"
+        File(path).resolve("$appName/build.gradle.kts").let { file ->
+            if (file.exists()) {
+                var fileContent = ""
+                file.forEachLine {
+                    if (it.contains("implementation(project(\":modules:core\"))")) {
+                        fileContent += "    implementation(project(\":$appModules:$nameLowercase\"))\n"
+                    }
+                    fileContent += "$it\n"
                 }
-                fileContent += "$it\n"
-            }
-            file.printWriter().use { out ->
-                out.println(fileContent)
+                file.printWriter().use { out ->
+                    out.println(fileContent)
+                }
             }
         }
     }
 
     private fun addActionsToApp() {
-        File(path).resolve("app/src/main/kotlin/${packet.joinToString("/")}/navigation/NavActions.kt").let { file ->
-            var fileContent = ""
-            file.forEachLine {
-                fileContent +=
-                    if (it.contains("import androidx.navigation.NavHostController")) {
-                        "import androidx.navigation.NavHostController\n" +
-                                "import ${
-                                    packet.take(2).joinToString(".")
-                                }.${namePackage}.navigation.actions.${name}NavActions\n"
-                    } else if (it.contains(") : ")) {
-                        val clazz = it.substringAfter(":").trim().replace(",", "")
-                        ") : ${name}NavActions,\n    $clazz,\n"
-                    } else {
-                        "$it\n"
-                    }
-            }
-            file.printWriter().use { out ->
-                out.println(fileContent)
+        File(path).resolve("$appName/src/main/kotlin/${packet.joinToString("/")}/navigation/NavActions.kt").let { file ->
+            if (file.exists()) {
+                var fileContent = ""
+                file.forEachLine {
+                    fileContent +=
+                        if (it.contains("import androidx.navigation.NavHostController")) {
+                            "import androidx.navigation.NavHostController\n" +
+                                    "import ${
+                                        packet.take(2).joinToString(".")
+                                    }.${namePackage}.navigation.actions.${name}NavActions\n"
+                        } else if (it.contains(") : ")) {
+                            val clazz = it.substringAfter(":").trim().replace(",", "")
+                            ") : ${name}NavActions,\n    $clazz,\n"
+                        } else {
+                            "$it\n"
+                        }
+                }
+                file.printWriter().use { out ->
+                    out.println(fileContent)
+                }
             }
         }
     }
