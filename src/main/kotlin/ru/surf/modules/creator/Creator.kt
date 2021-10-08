@@ -46,7 +46,11 @@ class Creator private constructor(
     }
 
     private val nameLowercase by lazy {
-        name.lowercase()
+        name.replaceFirstChar { it.lowercase() }
+    }
+
+    private val namePackage by lazy {
+        name.map { it.toString() }.reduce { acc, c -> acc + if (c.first().isUpperCase()) "_$c" else c }.lowercase()
     }
 
     private val packetCore: List<String> by lazy {
@@ -82,7 +86,7 @@ class Creator private constructor(
             val creator = Creator(
                 repo = REPO,
                 path = path,
-                name = name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) },
+                name = name.replaceFirstChar { it.titlecase(Locale.getDefault()) },
                 type = type
             )
 
@@ -155,7 +159,7 @@ class Creator private constructor(
         val segmentSecond = File("${moduleDir.path}/src/main/kotlin/ru/surf")
         val segmentOne = File("${moduleDir.path}/src/main/kotlin/ru")
 
-        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, nameLowercase)))
+        FileUtils.moveDirectory(segmentThird, File(segmentThird.path.replace(keyLowercase, namePackage)))
 
         try {
             FileUtils.moveDirectory(segmentSecond, File(segmentSecond.path.replace("surf", packet[1])))
@@ -208,7 +212,7 @@ class Creator private constructor(
                         "import androidx.navigation.NavHostController\n" +
                                 "import ${
                                     packet.take(2).joinToString(".")
-                                }.${nameLowercase}.navigation.actions.${name}NavActions\n"
+                                }.${namePackage}.navigation.actions.${name}NavActions\n"
                     } else if (it.contains(") : ")) {
                         val clazz = it.substringAfter(":").trim().replace(",", "")
                         ") : ${name}NavActions,\n    $clazz,\n"
@@ -260,7 +264,7 @@ class Creator private constructor(
                         isFind = true
                         lineRes = lineRes.replace(
                             "ru.surf.$nameLowercase",
-                            "${packet.take(2).joinToString(".")}.$nameLowercase"
+                            "${packet.take(2).joinToString(".")}.$namePackage"
                         )
                     }
                     // core package
